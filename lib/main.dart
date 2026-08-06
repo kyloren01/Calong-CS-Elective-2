@@ -4,6 +4,7 @@ void main() {
   runApp(const MyApp());
 }
 
+// App entry widget.
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -23,6 +24,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
+// Main mock screen layout.
 class InstagramMockPage extends StatelessWidget {
   const InstagramMockPage({super.key});
 
@@ -52,6 +54,7 @@ class InstagramMockPage extends StatelessWidget {
   }
 }
 
+// Top header bar.
 class _TopBar extends StatelessWidget {
   const _TopBar();
 
@@ -103,6 +106,7 @@ class _TopBar extends StatelessWidget {
   }
 }
 
+// Story preview section.
 class _StoryRow extends StatelessWidget {
   const _StoryRow();
 
@@ -152,6 +156,7 @@ class _StoryRow extends StatelessWidget {
   }
 }
 
+// Single post content card.
 class _PostCard extends StatelessWidget {
   const _PostCard();
 
@@ -235,6 +240,7 @@ class _PostCard extends StatelessWidget {
   }
 }
 
+// Bottom navigation row.
 class _BottomNavBar extends StatelessWidget {
   const _BottomNavBar();
 

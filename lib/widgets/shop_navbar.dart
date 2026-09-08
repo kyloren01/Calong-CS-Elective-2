@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 
 import '../routing/app_router.dart';
 import '../theme/app_theme.dart';
+import 'package:provider/provider.dart';
+import '../state/shop_store.dart';
 
 class ShopNavbar extends StatelessWidget implements PreferredSizeWidget {
   const ShopNavbar({super.key});
@@ -69,7 +71,7 @@ class ShopNavbar extends StatelessWidget implements PreferredSizeWidget {
           children: [
             IconButton(
               tooltip: 'Notifications',
-              onPressed: () {},
+               onPressed: () => context.push(AppRoutes.notifications),
               icon: const Icon(Icons.notifications_none_rounded),
             ),
             Positioned(
@@ -83,13 +85,14 @@ class ShopNavbar extends StatelessWidget implements PreferredSizeWidget {
                   color: AppColors.charcoal,
                   shape: BoxShape.circle,
                 ),
-                child: const Text(
-                  '5',
+                 child: Consumer<ShopStore>(
+                   builder: (context, store, _) => Text(
+                   '${store.purchases.length}',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
-                  ),
+                 )),
                 ),
               ),
             ),

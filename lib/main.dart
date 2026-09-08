@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'routing/app_router.dart';
 import 'theme/app_theme.dart';
+import 'state/shop_store.dart';
 
 void main() {
   runApp(const MyApp());
@@ -29,13 +31,16 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
+    return ChangeNotifierProvider(
+      create: (_) => ShopStore(),
+      child: MaterialApp.router(
       title: 'Flutter Shopee',
       debugShowCheckedModeBanner: false,
       theme: buildShopTheme(Brightness.light),
       darkTheme: buildShopTheme(Brightness.dark),
       themeMode: _themeMode,
       routerConfig: _router,
+      ),
     );
   }
 }

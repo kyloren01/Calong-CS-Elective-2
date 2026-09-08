@@ -5,6 +5,7 @@ import '../data/product_data.dart';
 import '../screens/cart_screen.dart';
 import '../screens/checkout_confirmation_screen.dart';
 import '../screens/home_screen.dart';
+import '../screens/notifications_screen.dart';
 import '../screens/product_detail_screen.dart';
 import '../screens/unknown_product_screen.dart';
 
@@ -13,6 +14,7 @@ abstract class AppRoutes {
   static const productDetail = '/details/:productId';
   static const cart = '/cart';
   static const checkout = '/checkout';
+  static const notifications = '/notifications';
 
   static String productDetailLocation(String productId) {
     return '/details/$productId';
@@ -46,6 +48,10 @@ GoRouter createAppRouter({required VoidCallback onToggleTheme}) {
       GoRoute(
         path: AppRoutes.checkout,
         builder: (context, state) => const CheckoutConfirmationScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.notifications,
+        builder: (context, state) => const NotificationsScreen(),
       ),
     ],
   );

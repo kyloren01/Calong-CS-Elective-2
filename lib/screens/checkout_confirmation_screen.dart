@@ -12,7 +12,7 @@ class CheckoutConfirmationScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Checkout')),
+      appBar: AppBar(title: const Text('Order complete')),
       body: SafeArea(
         child: Center(
           child: Padding(
@@ -21,8 +21,8 @@ class CheckoutConfirmationScreen extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 88,
-                  height: 88,
+                  width: 124,
+                  height: 124,
                   decoration: BoxDecoration(
                     color: AppColors.orange.withValues(alpha: 0.16),
                     shape: BoxShape.circle,
@@ -30,7 +30,7 @@ class CheckoutConfirmationScreen extends StatelessWidget {
                   child: const Icon(
                     Icons.check_rounded,
                     color: AppColors.orange,
-                    size: 46,
+                    size: 68,
                   ),
                 ),
                 const SizedBox(height: 18),
@@ -43,7 +43,7 @@ class CheckoutConfirmationScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Your order has been prepared for processing.',
+                  'Your order has been placed successfully.',
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
@@ -53,7 +53,7 @@ class CheckoutConfirmationScreen extends StatelessWidget {
                 FilledButton.icon(
                   onPressed: () => context.go(AppRoutes.home),
                   icon: const Icon(Icons.storefront_rounded),
-                  label: const Text('Back to shop'),
+                  label: const Text('Continue Shopping'),
                 ),
               ],
             ),

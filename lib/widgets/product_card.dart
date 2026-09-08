@@ -1,23 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../data/product_data.dart';
 import '../routing/app_router.dart';
 import '../theme/app_theme.dart';
+import '../state/shop_store.dart';
 import 'product_image.dart';
 
-class ProductCard extends StatelessWidget {
+class ProductCard extends StatefulWidget {
   const ProductCard({super.key, required this.product});
 
   final Product product;
 
+  @override
+  State<ProductCard> createState() => _ProductCardState();
+}
+
+class _ProductCardState extends State<ProductCard> {
   void _openProduct(BuildContext context) {
-    context.push(AppRoutes.productDetailLocation(product.id));
+    context.push(AppRoutes.productDetailLocation(widget.product.id));
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final product = widget.product;
 
     return Material(
       color: Colors.transparent,
@@ -81,7 +89,10 @@ class ProductCard extends StatelessWidget {
                       ),
                     ),
                     FilledButton(
-                      onPressed: () => _openProduct(context),
+                      onPressed: () {
+                        context.read<ShopStore>().add(product);
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${product.name} added to cart.')));
+                      },
                       style: FilledButton.styleFrom(
                         minimumSize: const Size(58, 36),
                         padding: const EdgeInsets.symmetric(horizontal: 14),

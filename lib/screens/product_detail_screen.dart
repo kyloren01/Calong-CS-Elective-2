@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../data/product_data.dart';
 import '../routing/app_router.dart';
 import '../theme/app_theme.dart';
 import '../widgets/product_image.dart';
 import '../widgets/product_meta_pill.dart';
+import '../state/shop_store.dart';
 
 class ProductDetailScreen extends StatelessWidget {
   const ProductDetailScreen({super.key, required this.product});
@@ -112,16 +114,10 @@ class ProductDetailScreen extends StatelessWidget {
                               children: [
                                 Expanded(
                                   child: FilledButton.icon(
-                                    onPressed: () =>
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              '${product.name} added to cart.',
-                                            ),
-                                          ),
-                                        ),
+                                     onPressed: () {
+                                       context.read<ShopStore>().add(product);
+                                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${product.name} added to cart.')));
+                                     },
                                     icon: const Icon(
                                       Icons.shopping_bag_rounded,
                                     ),

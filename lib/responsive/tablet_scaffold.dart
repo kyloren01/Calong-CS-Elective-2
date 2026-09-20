@@ -3,41 +3,26 @@ import '../widgets/my_box.dart';
 import '../widgets/my_drawer.dart';
 import '../widgets/my_tile.dart';
 
-// Tablet layout view for screen widths between 600px and 1100px
 class TabletScaffold extends StatelessWidget {
   const TabletScaffold({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200],
-      appBar: AppBar(
-        backgroundColor: Colors.grey[900],
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
-          'responsivedashboard',
-          style: TextStyle(color: Colors.white, fontSize: 16),
-        ),
-      ),
+      appBar: AppBar(title: const Text('responsive wireframe', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600))),
       drawer: const MyDrawer(),
       body: ListView(
+        padding: const EdgeInsets.all(14),
         children: [
-          // 1x4 top grid for tablet
-          AspectRatio(
-            aspectRatio: 4,
-            child: GridView.builder(
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: 4,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-              ),
-              itemBuilder: (context, index) {
-                return const MyBox();
-              },
-            ),
+          Container(height: 34, margin: const EdgeInsets.only(bottom: 12), decoration: BoxDecoration(color: const Color(0xFFE0E4EA), borderRadius: BorderRadius.circular(10))),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: 4,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, crossAxisSpacing: 6, mainAxisSpacing: 6, childAspectRatio: 2.2),
+            itemBuilder: (context, index) => const MyBox(),
           ),
-          // Vertical list tiles
+          const SizedBox(height: 6),
           for (int i = 0; i < 5; i++) const MyTile(),
         ],
       ),

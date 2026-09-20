@@ -4,61 +4,35 @@ import '../widgets/my_drawer.dart';
 import '../widgets/my_tile.dart';
 import '../widgets/right_panel.dart';
 
-// Desktop layout view for screen widths 1100px and above
 class DesktopScaffold extends StatelessWidget {
   const DesktopScaffold({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200],
-      appBar: AppBar(
-        backgroundColor: Colors.grey[900],
-        elevation: 0,
-        title: const Text(
-          'responsivedashboard',
-          style: TextStyle(color: Colors.white, fontSize: 16),
+      appBar: AppBar(title: const Text('responsive wireframe', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600))),
+      body: Row(children: [
+        const SizedBox(width: 240, child: MyDrawer()),
+        Expanded(
+          flex: 2,
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(18, 14, 12, 24),
+            children: [
+              Container(height: 34, margin: const EdgeInsets.only(bottom: 12), decoration: BoxDecoration(color: const Color(0xFFE0E4EA), borderRadius: BorderRadius.circular(10))),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: 4,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4, crossAxisSpacing: 6, mainAxisSpacing: 6, childAspectRatio: 1),
+                itemBuilder: (context, index) => const MyBox(),
+              ),
+              const SizedBox(height: 6),
+              for (int i = 0; i < 5; i++) const MyTile(),
+            ],
+          ),
         ),
-      ),
-      body: Row(
-        children: [
-          // Persistent left sidebar navigation
-          const SizedBox(
-            width: 240,
-            child: MyDrawer(),
-          ),
-          // Main content area with top grid and list
-          Expanded(
-            flex: 2,
-            child: ListView(
-              children: [
-                // 1x4 top grid
-                AspectRatio(
-                  aspectRatio: 4,
-                  child: GridView.builder(
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: 4,
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 4,
-                    ),
-                    itemBuilder: (context, index) {
-                      return const MyBox();
-                    },
-                  ),
-                ),
-                // Vertical list tiles
-                for (int i = 0; i < 5; i++) const MyTile(),
-              ],
-            ),
-          ),
-          // Right panel column
-          const Expanded(
-            flex: 1,
-            child: RightPanel(),
-          ),
-        ],
-      ),
+        const Expanded(flex: 1, child: RightPanel()),
+      ]),
     );
   }
 }

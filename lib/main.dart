@@ -15,9 +15,13 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Instagram UI',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.white),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFFE1306C),
+          brightness: Brightness.light,
+        ),
         scaffoldBackgroundColor: Colors.white,
         useMaterial3: true,
+        dividerColor: const Color(0xFFEAEAEA),
       ),
       home: const InstagramMockPage(),
     );
@@ -32,22 +36,34 @@ class InstagramMockPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        // Main vertical page layout.
-        child: Column(
-          children: [
-            const _TopBar(),
-            const Divider(height: 1, color: Color(0xFFE5E5E5)),
-            const _StoryRow(),
-            const Divider(height: 1, color: Color(0xFFEFEFEF)),
-            Expanded(
-              child: ListView(
-                padding: EdgeInsets.zero,
-                children: const [_PostCard()],
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final contentWidth = constraints.maxWidth > 600
+                ? 600.0
+                : constraints.maxWidth;
+
+            return Center(
+              child: SizedBox(
+                width: contentWidth,
+                child: Column(
+                  children: [
+                    const _TopBar(),
+                    const Divider(height: 1, color: Color(0xFFE5E5E5)),
+                    const _StoryRow(),
+                    const Divider(height: 1, color: Color(0xFFEFEFEF)),
+                    Expanded(
+                      child: ListView(
+                        padding: EdgeInsets.zero,
+                        children: const [_PostCard()],
+                      ),
+                    ),
+                    const Divider(height: 1, color: Color(0xFFE5E5E5)),
+                    const _BottomNavBar(),
+                  ],
+                ),
               ),
-            ),
-            const Divider(height: 1, color: Color(0xFFE5E5E5)),
-            const _BottomNavBar(),
-          ],
+            );
+          },
         ),
       ),
     );
@@ -61,46 +77,54 @@ class _TopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Top app header.
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      child: Row(
-        children: [
-          const Text(
-            'Instagram',
-            style: TextStyle(
-              fontSize: 34,
-              fontWeight: FontWeight.w500,
-              fontStyle: FontStyle.italic,
-              letterSpacing: -0.8,
-            ),
-          ),
-          const Spacer(),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.favorite_border, size: 28),
-          ),
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              IconButton(
-                onPressed: () {},
-                icon: const Icon(Icons.chat_bubble_outline, size: 26),
+    return SizedBox(
+      height: 50,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            const Text(
+              'Instagram',
+              style: TextStyle(
+                fontSize: 25,
+                fontWeight: FontWeight.w500,
+                fontStyle: FontStyle.italic,
+                letterSpacing: -1.1,
               ),
-              Positioned(
-                right: 7,
-                top: 5,
-                child: Container(
-                  width: 9,
-                  height: 9,
-                  decoration: const BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
+            ),
+            const Spacer(),
+            IconButton(
+              onPressed: () {},
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints.tightFor(width: 36, height: 36),
+              icon: const Icon(Icons.favorite_border_rounded, size: 25),
+            ),
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                IconButton(
+                  onPressed: () {},
+                  padding: EdgeInsets.zero,
+                  constraints:
+                      const BoxConstraints.tightFor(width: 36, height: 36),
+                  icon: const Icon(Icons.chat_bubble_outline_rounded, size: 24),
+                ),
+                Positioned(
+                  right: 3,
+                  top: 1,
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFF04438),
+                      shape: BoxShape.circle,
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -114,14 +138,14 @@ class _StoryRow extends StatelessWidget {
   Widget build(BuildContext context) {
     // Story preview row.
     return SizedBox(
-      height: 72,
+      height: 50,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
           children: [
             Container(
-              width: 40,
-              height: 40,
+              width: 32,
+              height: 32,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: const LinearGradient(
@@ -134,7 +158,7 @@ class _StoryRow extends StatelessWidget {
                 border: Border.all(color: Colors.white, width: 2),
               ),
               child: Container(
-                margin: const EdgeInsets.all(2.2),
+                margin: const EdgeInsets.all(2.5),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.white,
@@ -142,13 +166,22 @@ class _StoryRow extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 9),
             const Text(
               'username',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              style: TextStyle(
+                fontSize: 13,
+                color: Color(0xFF262626),
+                fontWeight: FontWeight.w500,
+              ),
             ),
             const Spacer(),
-            IconButton(onPressed: () {}, icon: const Icon(Icons.more_vert)),
+            IconButton(
+              onPressed: () {},
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints.tightFor(width: 28, height: 40),
+              icon: const Icon(Icons.more_vert, size: 22),
+            ),
           ],
         ),
       ),
@@ -167,47 +200,47 @@ class _PostCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AspectRatio(
-          aspectRatio: 1,
+          aspectRatio: 4 / 5,
           child: Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topRight,
                 end: Alignment.bottomLeft,
                 colors: [
-                  Color(0xFF6559CA),
-                  Color(0xFFBC318F),
-                  Color(0xFFE33F5F),
-                  Color(0xFFF77737),
-                  Color(0xFFFCAF45),
+                  Color(0xFF654EA3),
+                  Color(0xFFB83A9B),
+                  Color(0xFFE73488),
+                  Color(0xFFF64E5D),
+                  Color(0xFFFFB347),
                 ],
               ),
             ),
           ),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+          padding: const EdgeInsets.fromLTRB(10, 7, 10, 2),
           child: Row(
             children: [
-              const Icon(Icons.favorite, color: Colors.red, size: 26),
-              const SizedBox(width: 12),
-              const Icon(Icons.mode_comment_outlined, size: 25),
-              const SizedBox(width: 12),
-              const Icon(Icons.send_outlined, size: 24),
+              const Icon(Icons.favorite, color: Color(0xFFE53935), size: 22),
+              const SizedBox(width: 10),
+              const Icon(Icons.mode_comment_outlined, size: 21),
+              const SizedBox(width: 10),
+              const Icon(Icons.send_outlined, size: 21),
               const Spacer(),
-              const Icon(Icons.bookmark_border, size: 25),
+              const Icon(Icons.bookmark_border, size: 22),
             ],
           ),
         ),
         const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12),
+          padding: EdgeInsets.symmetric(horizontal: 10),
           child: Text(
             '10547 Likes',
-            style: TextStyle(fontWeight: FontWeight.w600),
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 4),
         const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12),
+          padding: EdgeInsets.symmetric(horizontal: 10),
           child: Text.rich(
             TextSpan(
               children: [
@@ -216,25 +249,26 @@ class _PostCard extends StatelessWidget {
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: Colors.black,
+                    fontSize: 11,
                   ),
                 ),
                 TextSpan(
                   text: 'Lorem ipsum dolor sit amet, consectetur',
-                  style: TextStyle(color: Colors.black87),
+                  style: TextStyle(color: Colors.black87, fontSize: 11),
                 ),
               ],
             ),
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 4),
         const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12),
+          padding: EdgeInsets.symmetric(horizontal: 10),
           child: Text(
             '#lorem  #ipsum  #dolor  #sit  #amet  #consectetur',
-            style: TextStyle(color: Color(0xFF4F7CAC), fontSize: 12),
+            style: TextStyle(color: Color(0xFF4F7CAC), fontSize: 9.5),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 7),
       ],
     );
   }
@@ -246,22 +280,137 @@ class _BottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Bottom navigation icons.
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-      child: Row(
-        children: const [
-          Icon(Icons.home_filled, size: 28),
-          Spacer(),
-          Icon(Icons.search, size: 28),
-          Spacer(),
-          Icon(Icons.add_box_outlined, size: 28),
-          Spacer(),
-          Icon(Icons.video_collection_outlined, size: 28),
-          Spacer(),
-          Icon(Icons.person_outline, size: 28),
-        ],
+    return SizedBox(
+      height: 44,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: const [
+            _InstagramNavButton(
+              icon: _InstagramNavIcon.home,
+              label: 'Home',
+            ),
+            _InstagramNavButton(
+              icon: _InstagramNavIcon.search,
+              label: 'Search',
+            ),
+            _InstagramNavButton(
+              icon: _InstagramNavIcon.create,
+              label: 'Create',
+            ),
+            _InstagramNavButton(
+              icon: _InstagramNavIcon.reels,
+              label: 'Reels',
+            ),
+            _InstagramNavButton(
+              icon: _InstagramNavIcon.profile,
+              label: 'Profile',
+            ),
+          ],
+        ),
       ),
     );
+  }
+}
+
+enum _InstagramNavIcon { home, search, create, reels, profile }
+
+class _InstagramNavButton extends StatelessWidget {
+  const _InstagramNavButton({required this.icon, required this.label});
+
+  final _InstagramNavIcon icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: label,
+      child: SizedBox(
+        width: 28,
+        height: 28,
+        child: CustomPaint(
+          painter: _InstagramNavIconPainter(icon),
+        ),
+      ),
+    );
+  }
+}
+
+class _InstagramNavIconPainter extends CustomPainter {
+  _InstagramNavIconPainter(this.icon);
+
+  final _InstagramNavIcon icon;
+
+  Paint get _stroke => Paint()
+    ..color = Colors.black
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 2.15
+    ..strokeCap = StrokeCap.round
+    ..strokeJoin = StrokeJoin.round;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path();
+
+    switch (icon) {
+      case _InstagramNavIcon.home:
+        // The reference uses a solid, softly shaped house rather than the
+        // sharper Material home glyph.
+        path
+          ..moveTo(3.5, 13.1)
+          ..lineTo(14, 4.2)
+          ..lineTo(24.5, 13.1)
+          ..lineTo(24.5, 24)
+          ..lineTo(16.7, 24)
+          ..lineTo(16.7, 16.5)
+          ..lineTo(11.3, 16.5)
+          ..lineTo(11.3, 24)
+          ..lineTo(3.5, 24)
+          ..close();
+        canvas.drawPath(path, Paint()..color = Colors.black);
+      case _InstagramNavIcon.search:
+        canvas.drawCircle(const Offset(12, 12), 8.1, _stroke);
+        canvas.drawLine(const Offset(18, 18), const Offset(24, 24), _stroke);
+      case _InstagramNavIcon.create:
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            const Rect.fromLTWH(4, 4, 20, 20),
+            const Radius.circular(5.2),
+          ),
+          _stroke,
+        );
+        canvas.drawLine(const Offset(10, 14), const Offset(18, 14), _stroke);
+        canvas.drawLine(const Offset(14, 10), const Offset(14, 18), _stroke);
+      case _InstagramNavIcon.reels:
+        final reelsRect = RRect.fromRectAndRadius(
+          const Rect.fromLTWH(4, 3.5, 20, 21),
+          const Radius.circular(5.2),
+        );
+        canvas.drawRRect(reelsRect, _stroke);
+        canvas.drawLine(const Offset(4.8, 9.2), const Offset(23.2, 9.2), _stroke);
+        canvas.drawLine(const Offset(9, 3.9), const Offset(13, 9.1), _stroke);
+        canvas.drawLine(const Offset(16, 3.9), const Offset(20, 9.1), _stroke);
+        path
+          ..moveTo(11.2, 13)
+          ..lineTo(11.2, 20)
+          ..lineTo(17.5, 16.5)
+          ..close();
+        canvas.drawPath(path, Paint()..color = Colors.black);
+      case _InstagramNavIcon.profile:
+        canvas.drawCircle(const Offset(14, 8.7), 4.1, _stroke);
+        path
+          ..moveTo(4.1, 23.8)
+          ..cubicTo(4.8, 18.8, 8.2, 16.3, 14, 16.3)
+          ..cubicTo(19.8, 16.3, 23.2, 18.8, 23.9, 23.8)
+          ..close();
+        canvas.drawPath(path, _stroke);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _InstagramNavIconPainter oldDelegate) {
+    return oldDelegate.icon != icon;
   }
 }

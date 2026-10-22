@@ -21,13 +21,14 @@ class PokemonGrid extends StatelessWidget {
             : 2;
 
         return GridView.builder(
+          physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
           itemCount: pokemon.length,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: columns,
             crossAxisSpacing: 14,
             mainAxisSpacing: 14,
-            childAspectRatio: 0.82,
+            mainAxisExtent: 280,
           ),
           itemBuilder: (context, index) {
             return PokemonCard(pokemon: pokemon[index], index: index);

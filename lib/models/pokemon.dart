@@ -1,8 +1,25 @@
 class Pokemon {
-  const Pokemon({required this.name, required this.apiUrl});
+  const Pokemon({
+    required this.name,
+    required this.apiUrl,
+    this.types = const [],
+  });
 
   final String name;
   final String apiUrl;
+  final List<String> types;
+
+  factory Pokemon.fromDetailJson(Map<String, dynamic> json) {
+    final id = json['id'] as int;
+    final types = (json['types'] as List)
+        .map((entry) => entry['type']['name'] as String)
+        .toList();
+    return Pokemon(
+      name: json['name'] as String,
+      apiUrl: 'https://pokeapi.co/api/v2/pokemon/$id/',
+      types: List.unmodifiable(types),
+    );
+  }
 
   factory Pokemon.fromJson(Map<String, dynamic> json) {
     return Pokemon(

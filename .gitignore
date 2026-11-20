@@ -43,3 +43,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Supabase URL and key, passed with --dart-define-from-file (see supabase.example.json)
+supabase.json

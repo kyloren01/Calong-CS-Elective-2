@@ -1,85 +1,85 @@
-# Pokédex — Midterm Exam
+# Shopping — Price Filter + Pagination (Supabase)
 
-A Flutter Pokédex using **BLoC through `flutter_bloc` and Cubit** as its single application state management approach. It extends the existing PokéAPI project and its list of the first 30 Pokémon.
+A Flutter shop backed by a Supabase `products` table. Customers narrow the list with a **price range slider** and **category chips**, and browse **6 products per page**. Products can also be added, edited, and deleted. Every filter and page change is a **Supabase query**, and a **Cubit (`flutter_bloc`)** manages the state.
 
-## Run
+The Pokédex midterm is still on the `midterm-exam` branch.
 
-```sh
-flutter pub get
-flutter run
-```
+## Setup
 
-Choose a connected Android device/emulator or an available desktop/browser target. For a browser on Windows:
+1. **Create the table.** In the Supabase dashboard, open **SQL Editor → New query**, paste all of [`supabase/schema.sql`](supabase/schema.sql), and click **Run**. It creates the `products` table, its RLS policies, a price index, and 24 sample products. Running it again is safe.
+2. **Add your keys.** Copy `supabase.example.json` to `supabase.json` (git ignores it) and fill in the **Project URL** and **publishable / anon key** shown by the dashboard's **Connect** button. Never put the secret or `service_role` key in the app.
+3. **Run.** In VS Code, press **F5**; the "Shop (Supabase)" launch configuration passes `supabase.json` for you. From a terminal:
 
-```sh
-flutter run -d edge
-```
+   ```sh
+   flutter pub get
+   flutter run --dart-define-from-file=supabase.json
+   ```
 
-Internet access is required for Pokémon data and artwork. The first request also loads Pokémon details for real type data. Subsequent refreshes fetch the list again and reuse the details cached in memory.
+   Without keys, the app opens a "Connect to Supabase" screen that lists these steps.
 
-## Exam features
+Building for **Windows desktop** requires Windows Developer Mode (`start ms-settings:developers`), because `supabase_flutter` uses plugins. Chrome, Edge, and Android don't need it.
+
+## Activity requirements
 
 | Requirement | Implementation |
 | --- | --- |
-| Async Pokémon loading, loading/success/error states | `PokedexCubit.fetch()` and `PokedexStatus`; the home page renders the current status |
-| Refresh using the existing fetch method | Both the AppBar button and pull-to-refresh call `cubit.fetch`; retry also uses it |
-| Add, edit, remove a nickname | Nickname dialog calls `saveNickname` or `removeNickname`; original names stay visible |
-| Expand/collapse favorites panel | `FavoritesPanel` is always accessible above the grid, including during filtering, loading, and errors |
-| Immediate favorite updates and heart indicators | Cards and the panel read the same `favoriteUrls` set; `toggleFavorite` emits updated state |
-| Filter by actual Pokémon types and clear the filter | Detail responses supply `types`; dropdown includes loaded types and an All types option |
-| Empty/error handling and resource cleanup | Empty list/panel/filter messages, retry action, HTTP timeouts, controller disposal and Cubit/service cleanup |
+| Price slider that filters the products | `PriceFilter` is a `RangeSlider` from the cheapest to the priciest product. On release, it calls `ShopCubit.setPriceRange`, which queries `.gte('price', min).lte('price', max)` |
+| 6–8 products per page | `ShopState.pageSize = 6` (2×3 on phones, 3×2 on tablets, 6×1 on desktops) |
+| Pagination done with a Supabase query | `.range(from, to)` fetches only the current page; `.count(CountOption.exact)` returns the total number of matches, which gives the page count |
+| Handled through a state management solution | `ShopCubit` emits a loading state, runs one query, and emits the new page; `BlocBuilder` redraws the screen |
+| Update, delete, and filter (from class) | Edit and delete buttons on each card use `.update(...).eq('id', id)` and `.delete().eq('id', id)`; the category chips use `.eq('category', name)`; **Add product** uses `.insert(...)` |
 
-Favorites and nicknames survive refresh and type changes within the current app session. They reset after restarting the application; disk persistence is not implemented. The type filter applies to the loaded first 30 Pokémon, including both types of dual-type Pokémon.
+For example, page 2 of the products priced $40–$130 is this query:
 
-The favorites panel starts collapsed. Tap its header to expand or collapse it. Opening the panel keeps the main grid visible, and the panel displays all favorites independently of the type filter.
+```dart
+supabase
+    .from('products')
+    .select()
+    .gte('price', 40)
+    .lte('price', 130)
+    .order('price', ascending: true)
+    .order('id', ascending: true)
+    .range(6, 11) // rows 7–12; range() includes both ends
+    .count(CountOption.exact);
+```
+
+## How it works
+
+`user action → ShopCubit method → Supabase query → emit(new ShopState) → BlocBuilder → updated UI`
+
+- Moving the slider or picking a category starts again at page 1. The slider queries once, when the thumb is released.
+- When the slider covers every price, no price filter is sent, so a new product above the old maximum still appears.
+- Products are sorted by price, then by `id`, so equal prices never put a product on two pages.
+- If the current page disappears, such as after deleting the only product on the last page, the shop shows the new last page. Supabase answers a page past the end with HTTP 416 (`PGRST103`); the repository then counts the matches instead.
+- After an add, edit, or delete, the slider limits and categories reload. A slider that covered every price grows or shrinks with the new prices; a narrowed one keeps its selection.
+- If a slow response arrives after a newer request, it is ignored, so quick page clicks can't show the wrong page.
+- RLS doesn't raise an error when it blocks an update or delete; it just changes 0 rows. The repository checks for that and shows a message.
 
 ## Code guide
 
 | File | Responsibility |
 | --- | --- |
-| `lib/main.dart` | Creates the app-wide Cubit with `BlocProvider` and starts fetching |
-| `lib/models/pokemon.dart` | Pokémon identity, names, artwork URLs, and actual type data |
-| `lib/services/pokemon_service.dart` | HTTP requests, JSON parsing, detail cache, and meaningful API errors |
-| `lib/state/pokedex_state.dart` | Immutable state plus derived favorites, visible list, and available types |
-| `lib/state/pokedex_cubit.dart` | Fetching lifecycle and all nickname/favorite/filter/panel actions |
-| `lib/screens/pokedex_list_screen.dart` | Home page, loading/error/empty views, refresh, and type selector |
-| `lib/widgets/pokemon_grid.dart` | Responsive card grid |
-| `lib/widgets/pokemon_card.dart` | Image, original name, nickname, types, favorite heart, and editor action |
-| `lib/widgets/favorites_panel.dart` | Collapsible favorites using compact versions of the full Pokémon card, with artwork, names, types, nickname editing, and removal |
-| `lib/widgets/nickname_editor.dart` | Dialog input and controller lifecycle |
+| `lib/main.dart` | Connects to Supabase and provides `ShopCubit` to the app |
+| `lib/config/supabase_config.dart` | Reads the URL and key passed with `--dart-define-from-file` |
+| `lib/models/product.dart` | `Product`, `ProductDraft`, `PriceRange`, and `ProductPage` |
+| `lib/data/product_repository.dart` | The interface the Cubit uses, and its error type |
+| `lib/data/supabase_product_repository.dart` | Every Supabase query, and readable error messages |
+| `lib/state/shop_state.dart` | Immutable state: current page, totals, slider range, category |
+| `lib/state/shop_cubit.dart` | Loading, paging, filtering, and add/edit/delete |
+| `lib/screens/shop_screen.dart` | Layout, dialogs, and loading, empty, and error states |
+| `lib/screens/setup_required_screen.dart` | Shown when the Supabase keys are missing |
+| `lib/widgets/` | Price slider, category chips, pagination bar, product card, and product form |
+| `supabase/schema.sql` | Table, RLS policies, index, and sample data |
 
-The update flow is `user action → Cubit method → emit(new state) → BlocBuilder → updated UI`. The service handles network details while the Cubit owns when to fetch and what the UI should display. There is no direct `provider` or Riverpod application implementation. `provider` may appear in the lockfile because `flutter_bloc` uses it internally.
-
-## Validate
+## Tests
 
 ```sh
 flutter analyze
 flutter test
-flutter build web
-flutter build apk --debug
 ```
 
-Validation completed with no analyzer issues, all 12 tests passing, and successful web and Android debug builds. A browser preview also loaded all 30 Pokémon with artwork from the live API. The Android APK is generated at `build/app/outputs/flutter-apk/app-debug.apk`.
+The tests use an in-memory copy of the 24 sample products, so they run without Supabase:
 
-The tests cover shared state across refresh and filtering, dual-type filtering, loading and request deduplication, failure/retry, safe disposal, actual type parsing, cache reuse, empty results, and the complete nickname/favorite/filter widget interaction. HTTP responses are mocked for deterministic tests; artwork uses a fallback when unavailable.
-
-## Presentation and submission
-
-Use [VIDEO_PRESENTATION_SCRIPT.md](VIDEO_PRESENTATION_SCRIPT.md) for a timed speaking script and screen actions. It covers the three video topics from the supplied exam PDF and targets approximately 12 minutes, below the 15-minute limit.
-
-The local branch is `midterm-exam`. After reviewing the files and replacing the presentation's name placeholder, commit and push your work:
-
-```sh
-git status
-git add README.md VIDEO_PRESENTATION_SCRIPT.md lib test pubspec.yaml pubspec.lock android/.gitignore android/app/src/main/AndroidManifest.xml ios/Runner/Info.plist macos/Runner/DebugProfile.entitlements macos/Runner/Release.entitlements web/index.html web/manifest.json
-git commit -m "Implement Pokedex midterm features with BLoC"
-git push -u origin midterm-exam
-```
-
-Then submit the repository/branch link and your recorded video using your class submission instructions. The exam PDF lists **October 22, 2026, at 11:59 PM** as the deadline; follow your instructor's timezone and any updated announcement.
-
-## References
-
-- [flutter_bloc package documentation](https://pub.dev/packages/flutter_bloc)
-- [BLoC documentation](https://bloclibrary.dev/)
-- [PokéAPI Pokémon API documentation](https://pokeapi.co/docs/v2#pokemon)
+- **Cubit:** paging, price and category filters, moving back a page after a delete, slider limits after edits, errors and retry, and out-of-order responses.
+- **Supabase repository:** the real Supabase client with a mocked HTTP layer, checking the exact query parameters sent, the HTTP 416 fallback, and the RLS, missing-table, API-key, and offline messages.
+- **Widgets:** paging, dragging the slider, category chips, the add/edit/delete dialogs, form validation, retry, and the setup screen.

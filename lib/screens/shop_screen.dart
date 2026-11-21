@@ -7,6 +7,7 @@ import '../models/product.dart';
 import '../state/shop_cubit.dart';
 import '../state/shop_state.dart';
 import '../theme/app_theme.dart';
+import '../widgets/account_button.dart';
 import '../widgets/category_filter.dart';
 import '../widgets/pagination_bar.dart';
 import '../widgets/price_filter.dart';
@@ -39,6 +40,7 @@ class ShopScreen extends StatelessWidget {
                 onPressed: state.isLoading ? null : cubit.load,
                 icon: const Icon(Icons.refresh_rounded),
               ),
+              const AccountButton(),
               const SizedBox(width: 8),
             ],
             bottom: PreferredSize(

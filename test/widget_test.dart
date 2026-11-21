@@ -9,6 +9,7 @@ import 'package:my_first_flutter_ui/screens/shop_screen.dart';
 import 'package:my_first_flutter_ui/state/shop_cubit.dart';
 import 'package:my_first_flutter_ui/widgets/product_card.dart';
 
+import 'support/fake_auth_repository.dart';
 import 'support/fake_product_repository.dart';
 
 void main() {
@@ -21,7 +22,12 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     final repository = FakeProductRepository()..error = error;
-    await tester.pumpWidget(ShopApp(repository: repository));
+    await tester.pumpWidget(
+      ShopApp(
+        auth: FakeAuthRepository(signedIn: emailUser),
+        products: repository,
+      ),
+    );
     await tester.pumpAndSettle();
     return repository;
   }

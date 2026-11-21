@@ -3,11 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'config/supabase_config.dart';
+import 'data/auth_repository.dart';
 import 'data/product_repository.dart';
+import 'data/supabase_auth_repository.dart';
 import 'data/supabase_product_repository.dart';
+import 'screens/auth_gate.dart';
 import 'screens/setup_required_screen.dart';
-import 'screens/shop_screen.dart';
-import 'state/shop_cubit.dart';
+import 'state/auth_cubit.dart';
 import 'theme/app_theme.dart';
 
 Future<void> main() async {
@@ -17,6 +19,7 @@ Future<void> main() async {
     return;
   }
   try {
+    // Also finishes a GitHub sign-in when the browser returns to the app.
     await Supabase.initialize(
       url: SupabaseConfig.url,
       publishableKey: SupabaseConfig.publishableKey,
@@ -25,27 +28,32 @@ Future<void> main() async {
     runApp(SetupRequiredApp(problem: 'Supabase could not start: $error'));
     return;
   }
+  final client = Supabase.instance.client;
   runApp(
-    ShopApp(repository: SupabaseProductRepository(Supabase.instance.client)),
+    ShopApp(
+      auth: SupabaseAuthRepository(client.auth),
+      products: SupabaseProductRepository(client),
+    ),
   );
 }
 
 class ShopApp extends StatelessWidget {
-  const ShopApp({super.key, required this.repository});
+  const ShopApp({super.key, required this.auth, required this.products});
 
-  /// Supabase in the app, an in-memory fake in tests.
-  final ProductRepository repository;
+  /// Supabase in the app, in-memory fakes in tests.
+  final AuthRepository auth;
+  final ProductRepository products;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => ShopCubit(repository: repository)..load(),
+      create: (_) => AuthCubit(repository: auth)..start(),
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Shopping',
         theme: buildShopTheme(Brightness.light),
         darkTheme: buildShopTheme(Brightness.dark),
-        home: const ShopScreen(),
+        home: AuthGate(products: products),
       ),
     );
   }

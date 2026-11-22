@@ -1,11 +1,11 @@
 {
-    "name": "Shopping",
-    "short_name": "Shopping",
+    "name": "Orange Essentials",
+    "short_name": "Orange Essentials",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#F7F8FC",
-    "theme_color": "#EF5350",
-    "description": "A shop with a price slider and pages loaded from Supabase.",
+    "background_color": "#F4F5F7",
+    "theme_color": "#C2410C",
+    "description": "A curated collection of everyday essentials.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -1,5 +1,5 @@
 name: my_first_flutter_ui
-description: "A Supabase shop with a price range filter and pagination, using Cubit state management."
+description: "Orange Essentials: a Supabase e-commerce app with admin and customer roles, built with Riverpod."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
@@ -35,10 +35,9 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   http: ^1.5.0
-  flutter_bloc: ^9.1.1
   supabase_flutter: ^2.18.3
-  font_awesome_flutter: ^11.0.0
-
+  flutter_riverpod: ^3.5.0
+  image_picker: ^1.2.4
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -59,6 +58,18 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  fonts:
+    - family: Plus Jakarta Sans
+      fonts:
+        - asset: assets/fonts/PlusJakartaSans-400.ttf
+          weight: 400
+        - asset: assets/fonts/PlusJakartaSans-600.ttf
+          weight: 600
+        - asset: assets/fonts/PlusJakartaSans-700.ttf
+          weight: 700
+        - asset: assets/fonts/PlusJakartaSans-800.ttf
+          weight: 800
 
   # To add assets to your application, add an assets section, like this:
   # assets:

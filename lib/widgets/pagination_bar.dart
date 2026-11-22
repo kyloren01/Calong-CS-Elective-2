@@ -26,44 +26,29 @@ class PaginationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(top: BorderSide(color: theme.colorScheme.outlineVariant)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                tooltip: 'Previous page',
-                onPressed: page > 1 ? () => onPageSelected(page - 1) : null,
-                icon: const Icon(Icons.chevron_left_rounded),
-              ),
-              for (final number in visiblePages)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 2),
-                  child: _PageNumber(
-                    number: number,
-                    selected: number == page,
-                    onPressed: () => onPageSelected(number),
-                  ),
-                ),
-              IconButton(
-                tooltip: 'Next page',
-                onPressed: page < totalPages
-                    ? () => onPageSelected(page + 1)
-                    : null,
-                icon: const Icon(Icons.chevron_right_rounded),
-              ),
-            ],
-          ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          tooltip: 'Previous page',
+          onPressed: page > 1 ? () => onPageSelected(page - 1) : null,
+          icon: const Icon(Icons.chevron_left_rounded),
         ),
-      ),
+        for (final number in visiblePages)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 2),
+            child: _PageNumber(
+              number: number,
+              selected: number == page,
+              onPressed: () => onPageSelected(number),
+            ),
+          ),
+        IconButton(
+          tooltip: 'Next page',
+          onPressed: page < totalPages ? () => onPageSelected(page + 1) : null,
+          icon: const Icon(Icons.chevron_right_rounded),
+        ),
+      ],
     );
   }
 }
@@ -86,7 +71,7 @@ class _PageNumber extends StatelessWidget {
       fixedSize: const WidgetStatePropertyAll(Size.square(40)),
       padding: const WidgetStatePropertyAll(EdgeInsets.zero),
       shape: WidgetStatePropertyAll(
-        RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
     final label = Text('$number');

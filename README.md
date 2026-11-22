@@ -1,130 +1,152 @@
-# Shopping — Supabase shop with GitHub sign-in
+# Orange Essentials — E-Commerce App (Final Exam)
 
-A Flutter shop backed by Supabase. People sign in with **email and password** or with **GitHub**. Once signed in, they can filter products with a **price range slider** and **category chips**, browse **6 products per page**, and add, edit, or delete products. Every filter and page change is a **Supabase query**, and **Cubits (`flutter_bloc`)** manage the state.
+A Flutter shop for everyday essentials with two roles. **Admins** manage products, categories, and orders. **Customers** browse, fill a cart, check out, and review their orders.
 
-The Pokédex midterm is still on the `midterm-exam` branch.
+| Area | Used here |
+| --- | --- |
+| State management | Riverpod (`flutter_riverpod`) |
+| Backend | Supabase Auth, Postgres, and Row Level Security |
+| Sign-in | Email and password, plus Google |
+| Images | Supabase Storage |
 
 ## Setup
 
-1. **Create the table.** In the Supabase dashboard, open **SQL Editor → New query**, paste all of [`supabase/schema.sql`](supabase/schema.sql), and click **Run**. It creates the `products` table, its RLS policies, a price index, and 24 sample products.
-2. **Only signed-in users can change products (recommended).** Run [`supabase/auth.sql`](supabase/auth.sql) the same way. Anyone can still view products. Both scripts are safe to run again.
-3. **Turn on GitHub sign-in.** Follow [GitHub sign-in setup](#github-sign-in-setup) below.
-4. **Add your keys.** Copy `supabase.example.json` to `supabase.json` (git ignores it) and fill in the **Project URL** and **publishable / anon key** shown by the dashboard's **Connect** button. Never put the secret or `service_role` key in the app.
-5. **Run in Chrome or Edge.** In VS Code, pick Chrome or Edge as the device and press **F5**. The "Shop (Supabase)" launch configuration passes `supabase.json` and uses port 3000, which is where Supabase sends you back after GitHub. From a terminal:
+1. **Create the backend.** In Supabase, open **SQL Editor → New query**, paste all of [`supabase/final_exam.sql`](supabase/final_exam.sql), and click **Run**. It creates every table, function, trigger, policy, and the image bucket, and adds 24 sample products to an empty shop. It also upgrades the `products` table from the earlier activities without losing rows. Running it again is safe.
+
+   The final exam's rules block signed-out visitors, so the apps of the earlier activities stop working with the same Supabase project. Use a new project to keep them working.
+2. **Turn on Google sign-in.** See [Google sign-in](#google-sign-in).
+3. **Add your keys.** Copy `supabase.example.json` to `supabase.json` (git ignores it) and fill in the **Project URL** and **publishable key** from the dashboard's **Connect** button. Never use the secret or `service_role` key in an app.
+4. **Run the app.** In VS Code, choose Chrome, Edge, or an Android device and press **F5**. From a terminal:
 
    ```sh
    flutter pub get
    flutter run -d chrome --web-port=3000 --dart-define-from-file=supabase.json
    ```
 
-   Without keys, the app opens a "Connect to Supabase" screen that lists these steps.
+5. **Make an admin.** Every account starts as a customer. Sign up in the app, put that email into [`supabase/make_admin.sql`](supabase/make_admin.sql), run it in the SQL Editor, then sign out and in again.
 
-GitHub sign-in works on **web** and on **Android and iOS**, which return to the app through the `io.supabase.shopping://login-callback/` link. The **Windows desktop** app shows the GitHub button turned off; use email there. Building for Windows desktop also requires Windows Developer Mode (`start ms-settings:developers`).
+### Google sign-in
 
-## GitHub sign-in setup
+1. In Supabase, open **Authentication → Sign In / Providers → Google** and copy the **Callback URL**.
+2. In the [Google Cloud console](https://console.cloud.google.com/auth/overview), create or choose a project and open **Google Auth Platform**:
+   - **Branding:** fill in the app name and your email.
+   - **Audience:** choose **External**.
+   - **Data Access:** the scopes `openid`, `userinfo.email`, and `userinfo.profile` are enough.
+   - **Clients → Create client → Web application:** add `http://localhost:3000` under **Authorized JavaScript origins**, and the Callback URL from step 1 under **Authorized redirect URIs**.
+3. Copy the client's **Client ID** and **Client secret** into the Google page in Supabase, turn the provider on, and **Save**.
+4. In Supabase, open **Authentication → URL Configuration**. Set the **Site URL** to `http://localhost:3000`, and add `http://localhost:3000/**` and `io.supabase.shopping://login-callback/` to the **Redirect URLs**.
+5. Optional, for testing email sign-up: turn off **Confirm email** under **Authentication → Sign In / Providers → Email**.
 
-1. **Copy the callback URL from Supabase.** Open **Authentication → Sign In / Providers → GitHub**. The page shows a **Callback URL**, which looks like `https://<project-ref>.supabase.co/auth/v1/callback`.
-2. **Create a GitHub OAuth App.** On GitHub, open **Settings → Developer settings → OAuth Apps → New OAuth App** and enter:
-   - **Application name:** Shopping (any name works)
-   - **Homepage URL:** `http://localhost:3000`
-   - **Authorization callback URL:** the Callback URL from step 1
-
-   Click **Register application**, copy the **Client ID**, then click **Generate a new client secret** and copy the secret.
-3. **Turn the provider on in Supabase.** Back on the GitHub provider page, switch on **Enable Sign in with GitHub**, paste the Client ID and the Client Secret, and click **Save**.
-4. **Allow the app's return addresses.** Open **Authentication → URL Configuration**:
-   - **Site URL:** `http://localhost:3000`
-   - **Redirect URLs:** add `http://localhost:3000/**` and `io.supabase.shopping://login-callback/`
-5. **Optional, for testing email sign-up:** in **Authentication → Sign In / Providers → Email**, turn off **Confirm email**. New email accounts can then sign in right away instead of waiting for a confirmation email.
-
-To check it worked, sign in with GitHub, then open **Authentication → Users** in Supabase. Your account is listed with GitHub as its provider.
-
-### If something goes wrong
+Google sign-in works on the web (port 3000) and on Android and iOS, which come back through the `io.supabase.shopping://` link. The Windows desktop app shows the Google button turned off; email works everywhere.
 
 | What you see | Fix |
 | --- | --- |
-| A page with `Unsupported provider: provider is not enabled` | GitHub isn't switched on in Supabase (step 3), or it wasn't saved |
-| GitHub says `The redirect_uri is not associated with this application` | The OAuth App's callback URL must match Supabase's Callback URL exactly (step 2) |
-| After GitHub, the browser opens a page that doesn't load | The app isn't running on port 3000, or the URL Configuration from step 4 is missing |
-| "Confirm your email first" after creating an email account | Click the link Supabase emailed you, or turn off **Confirm email** (step 5) |
+| `Unsupported provider: provider is not enabled` | Turn on Google in Supabase (step 3) and save |
+| Google says `redirect_uri_mismatch` | The redirect URI in Google must equal Supabase's Callback URL exactly (step 2) |
+| After Google, a page that doesn't load | Run the app on port 3000 and check step 4 |
+| "The database is not set up yet" | Run `final_exam.sql` |
+| "No profile found" | Run `final_exam.sql`; it also creates profiles for accounts that already exist |
 
-## Activity requirements
+## Requirements
 
-### Other Provider Authentication
+### Authentication, profiles, and the auth gate
 
-| Requirement | Implementation |
+| Requirement | Where |
 | --- | --- |
-| Select 1 additional 3rd-party provider | **GitHub**, using Supabase's GitHub provider and a GitHub OAuth App |
-| Integrate it as an additional authentication option for users | The sign-in screen keeps **email and password** and adds **Continue with GitHub**, which calls `supabase.auth.signInWithOAuth(OAuthProvider.github, redirectTo: ...)` |
-| Works for the app's users | Supabase returns to the app with a sign-in code, `supabase_flutter` exchanges it for a session, and the shop opens. The account menu shows the GitHub name, the email, "Signed in with GitHub", and **Sign out** |
+| Email and password, plus Google | `AuthService`, `LoginPage`, `SignUpPage` |
+| Profile creation | The `handle_new_user()` function and the `on_auth_user_created` trigger. Every account becomes a customer, whatever the app sends |
+| Session in sync with the UI | `sessionProvider` follows `onAuthStateChange`. `AuthGate` shows login, the customer's app, or the admin's app, and pages opened on top close when the session ends |
 
-### Price Filter + Pagination
+### Admin
 
-| Requirement | Implementation |
+| Requirement | Where |
 | --- | --- |
-| Price slider that filters the products | `PriceFilter` is a `RangeSlider` from the cheapest to the priciest product. On release, it calls `ShopCubit.setPriceRange`, which queries `.gte('price', min).lte('price', max)` |
-| 6–8 products per page | `ShopState.pageSize = 6` (2×3 on phones, 3×2 on tablets, 6×1 on desktops) |
-| Pagination done with a Supabase query | `.range(from, to)` fetches only the current page; `.count(CountOption.exact)` returns the total number of matches, which gives the page count |
-| Handled through a state management solution | `ShopCubit` emits a loading state, runs one query, and emits the new page; `BlocBuilder` redraws the screen |
-| Update, delete, and filter (from class) | Edit and delete buttons on each card use `.update(...).eq('id', id)` and `.delete().eq('id', id)`; the category chips use `.eq('category', name)`; **Add product** uses `.insert(...)` |
+| Floating button that opens the Add Product form; Edit and Delete on every card | `AdminProductsPage` |
+| Name, description, price, stock, category, image; edit form filled in with current values | `ProductFormPage` |
+| Validation: name required, price a number of zero or more, stock a whole number of zero or more | `Validators`, and check constraints in the database |
+| Delete only after a dialog that names the product | `AdminProductsPage` |
+| Category management | `AdminCategoriesPage` |
+| Order list with statuses | `AdminOrdersPage` |
 
-For example, page 2 of the products priced $40–$130 is this query:
+### Customer
+
+| Requirement | Where |
+| --- | --- |
+| Browse, search, category chips, price slider, 6 products per page | `CatalogView`; every choice is one Supabase query |
+| Add to cart instead of management buttons | `ShopPage` |
+| Change quantity, remove, running total, item count, never above the stock | `CartPage`, `cartProvider` |
+| Cart survives screen changes, and empties after an order and on logout | `cartProvider` |
+| Checkout, saved with the status done, then a confirmation with order number and total | `checkoutProvider`, `OrderConfirmationPage` |
+| Own orders only, newest first, with status, date, total, and items | `OrderHistoryPage` |
+
+Loading, empty, error, and permission-denied states are shared by every page through `AsyncView` and `ErrorView`.
+
+## Security
+
+### Why hiding a button is not security
+
+Customers never see Add, Edit, or Delete, but that only shapes the interface. The app's publishable key is inside the app, and anyone who signs in gets a token. With those two, a customer can skip the app and send requests straight to the Supabase API, for example to set every price to 0. The app's code can't stop a request it never sees.
+
+Row Level Security runs inside Postgres, on every request, no matter who or what sent it. `is_admin()` looks up the caller's role in the database, so a customer's edit changes nothing even if the buttons were shown. The interface and the policies follow the same rules, but only the policies enforce them.
+
+| Table | Signed out | Customer | Admin |
+| --- | --- | --- | --- |
+| `profiles` | No access | Read and update own row, never the role | Read all |
+| `roles` | No access | Read | Read |
+| `categories` | No access | Read | Read, add, edit, delete |
+| `products` | No access | Read | Read, add, edit, delete |
+| `orders` | No access | Read own | Read all, update status |
+| `order_items` | No access | Read items of own orders | Read all |
+
+Two layers protect these rules. Privileges decide which columns can be written at all: through the API, nobody can write `profiles.role_id` or `orders.total`. Policies decide which rows. Only admins can upload or delete product images; viewing an image by its link is public, because product pictures aren't private.
+
+### Checkout integrity
+
+The app sends only product ids and quantities to the `place_order()` function:
 
 ```dart
-supabase
-    .from('products')
-    .select()
-    .gte('price', 40)
-    .lte('price', 130)
-    .order('price', ascending: true)
-    .order('id', ascending: true)
-    .range(6, 11) // rows 7–12; range() includes both ends
-    .count(CountOption.exact);
+supabase.rpc('place_order', params: {
+  'items': [{'product_id': 3, 'quantity': 2}],
+});
 ```
 
-## How it works
+- **All or nothing.** A function runs in one transaction. If any item fails, the order, its items, and the stock changes are all undone.
+- **Database values only.** Names, prices, and stock are read from `products` at that moment. Anything else in the request is ignored.
+- **No overselling.** Products are locked (`for update`) while they are checked and reduced, so two checkouts can't sell the same stock.
+- **Snapshots.** `order_items` keeps the name and price that were paid, even if the product later changes or is deleted.
+- **No way around it.** Nobody has permission to insert into `orders` or `order_items` directly.
 
-### Sign-in
+## Database
 
-`Continue with GitHub → GitHub approves → Supabase → back to the app with a code → session → AuthCubit → AuthGate shows the shop`
+```text
+auth.users 1───1 profiles *───1 roles
+                    1
+                    │
+                    *
+                 orders 1───* order_items *───0..1 products *───1 categories
+```
 
-- `AuthCubit` follows `supabase.auth.onAuthStateChange`, so the shop opens no matter how the session arrived: the email form, or the browser coming back from GitHub.
-- Supabase saves the session, so reopening the app stays signed in until **Sign out**.
-- A wrong password, an unconfirmed email, or pressing Cancel on GitHub shows a message on the sign-in screen.
-- With `auth.sql`, adding, editing, and deleting need a signed-in user (the `authenticated` role in RLS). Reading stays open.
-
-### Shop
-
-`user action → ShopCubit method → Supabase query → emit(new ShopState) → BlocBuilder → updated UI`
-
-- Moving the slider or picking a category starts again at page 1. The slider queries once, when the thumb is released.
-- When the slider covers every price, no price filter is sent, so a new product above the old maximum still appears.
-- Products are sorted by price, then by `id`, so equal prices never put a product on two pages.
-- If the current page disappears, such as after deleting the only product on the last page, the shop shows the new last page. Supabase answers a page past the end with HTTP 416 (`PGRST103`); the repository then counts the matches instead.
-- After an add, edit, or delete, the slider limits and categories reload.
-- If a slow response arrives after a newer request, it is ignored, so quick page clicks can't show the wrong page.
-- RLS doesn't raise an error when it blocks an update or delete; it just changes 0 rows. The repository checks for that and shows a message.
-
-## Code guide
-
-| File | Responsibility |
+| Function | Purpose |
 | --- | --- |
-| `lib/main.dart` | Connects to Supabase and provides `AuthCubit` to the app |
-| `lib/config/supabase_config.dart` | The URL and key passed with `--dart-define-from-file`, and the mobile return link |
-| `lib/models/app_user.dart` | The signed-in person: name, email, picture, and provider |
-| `lib/data/auth_repository.dart` | The sign-in interface `AuthCubit` uses |
-| `lib/data/supabase_auth_repository.dart` | Email and GitHub sign-in with Supabase Auth, and readable error messages |
-| `lib/state/auth_state.dart`, `auth_cubit.dart` | Who is signed in, which button is busy, and messages |
-| `lib/screens/auth_gate.dart` | Shows the sign-in screen or the shop |
-| `lib/screens/sign_in_screen.dart` | Email and password form, plus **Continue with GitHub** |
-| `lib/widgets/account_button.dart` | Profile picture, account details, and **Sign out** |
-| `lib/models/product.dart` | `Product`, `ProductDraft`, `PriceRange`, and `ProductPage` |
-| `lib/data/supabase_product_repository.dart` | Every products query, and readable error messages |
-| `lib/state/shop_state.dart`, `shop_cubit.dart` | Paging, filters, and add/edit/delete |
-| `lib/screens/shop_screen.dart` | Layout, dialogs, and loading, empty, and error states |
-| `lib/widgets/` | Price slider, category chips, pagination bar, product card, and product form |
-| `supabase/schema.sql` | Table, RLS policies, index, and sample data |
-| `supabase/auth.sql` | Limits adding, editing, and deleting to signed-in users |
-| `android/.../AndroidManifest.xml`, `ios/Runner/Info.plist` | Register the `io.supabase.shopping://` return link |
+| `handle_new_user()` | Trigger on `auth.users`: creates the customer profile |
+| `is_admin()` | Used by the policies to check the caller's role |
+| `my_role_id()` | Used by the profiles policy so nobody changes their own role |
+| `place_order(items)` | Checkout, in one transaction |
+
+## Code structure
+
+Pages watch providers, providers call services, and only services talk to Supabase.
+
+| Folder | Contents |
+| --- | --- |
+| `lib/models/` | Plain data classes |
+| `lib/services/` | All Supabase requests; `supabase_guard.dart` turns errors into readable messages |
+| `lib/providers/` | Riverpod providers: session and role, catalog, cart, checkout, orders, admin actions |
+| `lib/pages/` | Screens, grouped into `auth`, `customer`, and `admin` |
+| `lib/widgets/` | Shared parts, such as the catalog, filters, cards, and error views |
+| `lib/theme/` | Colors, typography (Plus Jakarta Sans), and component styles, light and dark |
+| `lib/utils/`, `lib/config/` | Formatting, form checks, and configuration |
+| `supabase/` | The backend script and the script that makes an admin |
 
 ## Tests
 
@@ -133,8 +155,6 @@ flutter analyze
 flutter test
 ```
 
-The tests use in-memory fakes, so they run without Supabase or GitHub:
+168 tests run without a Supabase project. They cover sign-in and roles, the cart and checkout, filters and paging, admin actions, every page on desktop and phone sizes, and the exact requests sent by the real Supabase client. The in-memory backend follows the same role rules as the policies, so the tests also check what happens when a request is refused.
 
-- **Sign-in:** the email form, wrong passwords, email confirmation, GitHub sign-in finishing when the browser returns, a cancelled GitHub sign-in, a saved session, sign-out, and the turned-off GitHub button on desktop.
-- **Supabase Auth:** the real Supabase client with a mocked HTTP layer, checking the password sign-in request, the sign-up return link, an email that already has an account, sign-out, offline errors, and the GitHub sign-in URL and its return link.
-- **Shop:** paging, price and category filters, add/edit/delete, errors and retry, and the exact products queries sent to Supabase.
+The font [Plus Jakarta Sans](https://fonts.google.com/specimen/Plus+Jakarta+Sans) is included under the SIL Open Font License (`assets/fonts/PlusJakartaSans-OFL.txt`).

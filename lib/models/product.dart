@@ -1,27 +1,52 @@
-/// One row of the Supabase `products` table (see supabase/schema.sql).
+/// One row of the `products` table, with its category's name and the link
+/// to its picture.
 class Product {
   const Product({
     required this.id,
     required this.name,
-    required this.description,
-    required this.category,
     required this.price,
+    required this.stock,
+    required this.categoryId,
+    required this.categoryName,
+    this.description = '',
+    this.imagePath,
+    this.imageUrl,
   });
 
-  factory Product.fromJson(Map<String, dynamic> json) => Product(
-    id: (json['id'] as num).toInt(),
-    name: json['name'] as String,
-    description: json['description'] as String? ?? '',
-    category: json['category'] as String? ?? 'General',
-    // Supabase sends numeric columns as JSON numbers, such as 129 or 12.5.
-    price: (json['price'] as num).toDouble(),
-  );
+  factory Product.fromJson(
+    Map<String, dynamic> json, {
+    required String Function(String path) imageUrlFor,
+  }) {
+    final imagePath = json['image_path'] as String?;
+    return Product(
+      id: (json['id'] as num).toInt(),
+      name: json['name'] as String,
+      description: json['description'] as String? ?? '',
+      // Supabase sends numeric columns as JSON numbers, such as 129 or 12.5.
+      price: (json['price'] as num).toDouble(),
+      stock: (json['stock'] as num).toInt(),
+      categoryId: (json['category_id'] as num).toInt(),
+      categoryName:
+          (json['categories'] as Map<String, dynamic>?)?['name'] as String? ??
+          'General',
+      imagePath: imagePath,
+      imageUrl: imagePath == null ? null : imageUrlFor(imagePath),
+    );
+  }
 
   final int id;
   final String name;
   final String description;
-  final String category;
   final double price;
+  final int stock;
+  final int categoryId;
+  final String categoryName;
+
+  /// Where the picture is in the Storage bucket, or null without one.
+  final String? imagePath;
+  final String? imageUrl;
+
+  bool get isOutOfStock => stock <= 0;
 
   @override
   bool operator ==(Object other) =>
@@ -29,82 +54,62 @@ class Product {
       other.id == id &&
       other.name == name &&
       other.description == description &&
-      other.category == category &&
-      other.price == price;
+      other.price == price &&
+      other.stock == stock &&
+      other.categoryId == categoryId &&
+      other.categoryName == categoryName &&
+      other.imagePath == imagePath;
 
   @override
-  int get hashCode => Object.hash(id, name, description, category, price);
+  int get hashCode => Object.hash(
+    id,
+    name,
+    description,
+    price,
+    stock,
+    categoryId,
+    categoryName,
+    imagePath,
+  );
 
   @override
-  String toString() => 'Product($id, $name, $category, $price)';
+  String toString() => 'Product($id, $name, $price, stock $stock)';
 }
 
-/// The fields filled in on the add and edit forms.
+/// The fields an admin fills in on the product form.
 class ProductDraft {
   const ProductDraft({
     required this.name,
     required this.description,
-    required this.category,
     required this.price,
+    required this.stock,
+    required this.categoryId,
+    this.imagePath,
   });
 
   final String name;
   final String description;
-  final String category;
   final double price;
+  final int stock;
+  final int categoryId;
+  final String? imagePath;
 
-  /// The column values sent to Supabase. The database fills in `id` and
-  /// `created_at` itself.
+  ProductDraft withImage(String? path) => ProductDraft(
+    name: name,
+    description: description,
+    price: price,
+    stock: stock,
+    categoryId: categoryId,
+    imagePath: path,
+  );
+
+  /// The column values sent to Supabase.
   Map<String, dynamic> toJson() => {
     'name': name,
     'description': description,
-    'category': category,
     'price': price,
+    'stock': stock,
+    'category_id': categoryId,
+    'image_path': imagePath,
   };
-}
-
-/// An inclusive price range: the slider's limits, or the part of it a
-/// customer selected.
-class PriceRange {
-  const PriceRange(this.min, this.max);
-
-  /// Whole-dollar slider limits around the cheapest and priciest product.
-  factory PriceRange.wholeDollars(PriceRange prices) {
-    final min = prices.min.floorToDouble();
-    final max = prices.max.ceilToDouble();
-    // A slider needs some width, even when every product costs the same.
-    return PriceRange(min, max > min ? max : min + 1);
-  }
-
-  final double min;
-  final double max;
-
-  bool contains(double price) => price >= min && price <= max;
-
-  /// Whether this range includes every price in [other].
-  bool covers(PriceRange other) => min <= other.min && max >= other.max;
-
-  /// Moves both ends inside [bounds].
-  PriceRange clampTo(PriceRange bounds) => PriceRange(
-    min.clamp(bounds.min, bounds.max),
-    max.clamp(bounds.min, bounds.max),
-  );
-
-  @override
-  bool operator ==(Object other) =>
-      other is PriceRange && other.min == min && other.max == max;
-
-  @override
-  int get hashCode => Object.hash(min, max);
-
-  @override
-  String toString() => 'PriceRange($min, $max)';
-}
-
-/// One page of query results, plus how many products match on all pages.
-class ProductPage {
-  const ProductPage({required this.products, required this.totalCount});
-
-  final List<Product> products;
-  final int totalCount;
 }

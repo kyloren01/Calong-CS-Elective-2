@@ -17,7 +17,7 @@ class SupabaseConfig {
 
   static bool get isConfigured => url.isNotEmpty && publishableKey.isNotEmpty;
 
-  /// The deep link that brings Android and iOS back from the GitHub sign-in
+  /// The deep link that brings Android and iOS back from the Google sign-in
   /// page. It is registered in AndroidManifest.xml and Info.plist, and must
   /// be added to Supabase under Authentication → URL Configuration.
   static const mobileRedirectUrl = 'io.supabase.shopping://login-callback/';

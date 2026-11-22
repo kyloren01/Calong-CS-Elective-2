@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_theme.dart';
+import '../models/product.dart';
 
-/// The icon and colors used for each category, so products need no image
-/// column.
+/// The icon and colors used while a product has no picture.
 class CategoryStyle {
   const CategoryStyle(this.icon, this.start, this.end);
 
@@ -55,69 +54,68 @@ class CategoryStyle {
   };
 }
 
+/// The product's picture, or artwork for its category when there is none
+/// (or it can't be loaded).
 class ProductImage extends StatelessWidget {
-  const ProductImage({super.key, required this.category, required this.height});
+  const ProductImage({super.key, required this.product, this.radius = 12});
+
+  final Product product;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) {
+    final artwork = CategoryArtwork(category: product.categoryName);
+    final url = product.imageUrl;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(radius),
+      child: url == null
+          ? artwork
+          : Image.network(
+              url,
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: double.infinity,
+              semanticLabel: product.name,
+              errorBuilder: (_, _, _) => artwork,
+              loadingBuilder: (context, child, progress) => progress == null
+                  ? child
+                  : ColoredBox(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
+                      child: const Center(
+                        child: SizedBox.square(
+                          dimension: 22,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                    ),
+            ),
+    );
+  }
+}
+
+class CategoryArtwork extends StatelessWidget {
+  const CategoryArtwork({super.key, required this.category});
 
   final String category;
-  final double height;
 
   @override
   Widget build(BuildContext context) {
     final style = CategoryStyle.of(category);
-    return Container(
-      height: height,
-      width: double.infinity,
+    return DecoratedBox(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [style.start, style.end],
         ),
       ),
-      child: Stack(
-        children: [
-          Positioned(
-            top: 12,
-            left: 14,
-            child: Container(
-              width: height * 0.16,
-              height: height * 0.16,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.38),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          Center(
-            child: Icon(style.icon, size: height * 0.46, color: Colors.white),
-          ),
-          Positioned(
-            left: 8,
-            right: 8,
-            bottom: 8,
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.92),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  category,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.charcoal,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
+      child: SizedBox.expand(
+        child: FractionallySizedBox(
+          heightFactor: 0.46,
+          child: FittedBox(child: Icon(style.icon, color: Colors.white)),
+        ),
       ),
     );
   }

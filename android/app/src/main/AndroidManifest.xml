@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
     <application
-        android:label="Shopping"
+        android:label="Orange Essentials"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -25,7 +25,7 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-            <!-- GitHub sign-in returns to the app through this link:
+            <!-- Google sign-in returns to the app through this link:
                  io.supabase.shopping://login-callback/
                  Flutter's own deep linking is off so Supabase receives it. -->
             <meta-data android:name="flutter_deeplinking_enabled" android:value="false" />

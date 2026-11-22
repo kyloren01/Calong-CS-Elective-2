@@ -1,60 +1,69 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'config/app_config.dart';
 import 'config/supabase_config.dart';
-import 'data/auth_repository.dart';
-import 'data/product_repository.dart';
-import 'data/supabase_auth_repository.dart';
-import 'data/supabase_product_repository.dart';
-import 'screens/auth_gate.dart';
-import 'screens/setup_required_screen.dart';
-import 'state/auth_cubit.dart';
+import 'pages/auth/auth_gate.dart';
+import 'pages/setup_page.dart';
+import 'providers/session_providers.dart';
 import 'theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   if (!SupabaseConfig.isConfigured) {
-    runApp(const SetupRequiredApp());
+    runApp(const SetupApp());
     return;
   }
   try {
-    // Also finishes a GitHub sign-in when the browser returns to the app.
+    // Also finishes a Google sign-in when the browser returns to the app.
     await Supabase.initialize(
       url: SupabaseConfig.url,
       publishableKey: SupabaseConfig.publishableKey,
     );
   } catch (error) {
-    runApp(SetupRequiredApp(problem: 'Supabase could not start: $error'));
+    runApp(SetupApp(problem: 'Supabase could not start: $error'));
     return;
   }
-  final client = Supabase.instance.client;
   runApp(
-    ShopApp(
-      auth: SupabaseAuthRepository(client.auth),
-      products: SupabaseProductRepository(client),
+    const ProviderScope(
+      // Riverpod would silently retry failed loads for a while. Showing the
+      // error with a "Try again" button is clearer.
+      retry: noRetry,
+      child: ShopApp(),
     ),
   );
 }
 
-class ShopApp extends StatelessWidget {
-  const ShopApp({super.key, required this.auth, required this.products});
+Duration? noRetry(int retryCount, Object error) => null;
 
-  /// Supabase in the app, in-memory fakes in tests.
-  final AuthRepository auth;
-  final ProductRepository products;
+class ShopApp extends ConsumerStatefulWidget {
+  const ShopApp({super.key});
+
+  @override
+  ConsumerState<ShopApp> createState() => _ShopAppState();
+}
+
+class _ShopAppState extends ConsumerState<ShopApp> {
+  final _navigator = GlobalKey<NavigatorState>();
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => AuthCubit(repository: auth)..start(),
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'Shopping',
-        theme: buildShopTheme(Brightness.light),
-        darkTheme: buildShopTheme(Brightness.dark),
-        home: AuthGate(products: products),
-      ),
+    // Followed from here because pages under another page stop listening.
+    // When the session ends, pages opened on top of the shop must close.
+    ref.listen(userIdProvider, (previous, next) {
+      if (previous != next) {
+        _navigator.currentState?.popUntil((route) => route.isFirst);
+      }
+    });
+
+    return MaterialApp(
+      navigatorKey: _navigator,
+      debugShowCheckedModeBanner: false,
+      title: AppConfig.name,
+      theme: buildAppTheme(Brightness.light),
+      darkTheme: buildAppTheme(Brightness.dark),
+      home: const AuthGate(),
     );
   }
 }

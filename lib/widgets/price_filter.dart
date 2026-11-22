@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../models/product.dart';
-import '../theme/app_theme.dart';
+import '../models/catalog.dart';
 import '../utils/price_format.dart';
 
 /// A two-thumb price slider. The labels follow the thumbs while dragging,
@@ -43,18 +42,12 @@ class _PriceFilterState extends State<PriceFilter> {
       children: [
         Row(
           children: [
-            Text(
-              'Price',
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
-            ),
+            Text('Price', style: theme.textTheme.titleSmall),
             const Spacer(),
             Text(
               '${formatWholePrice(values.start)} – ${formatWholePrice(values.end)}',
               style: theme.textTheme.titleSmall?.copyWith(
-                color: AppColors.orange,
-                fontWeight: FontWeight.w900,
+                color: theme.colorScheme.primary,
               ),
             ),
           ],
@@ -62,7 +55,7 @@ class _PriceFilterState extends State<PriceFilter> {
         RangeSlider(
           min: bounds.min,
           max: bounds.max,
-          // $1 steps. Very wide ranges slide smoothly and are rounded on release.
+          // $1 steps. Very wide ranges slide smoothly and round on release.
           divisions: span <= 1000 ? span.round() : null,
           values: values,
           labels: RangeLabels(
@@ -73,7 +66,10 @@ class _PriceFilterState extends State<PriceFilter> {
           onChangeEnd: (range) {
             setState(() => _dragging = null);
             widget.onChanged(
-              PriceRange(range.start.roundToDouble(), range.end.roundToDouble()),
+              PriceRange(
+                range.start.roundToDouble(),
+                range.end.roundToDouble(),
+              ),
             );
           },
         ),
